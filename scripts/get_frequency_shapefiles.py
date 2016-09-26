@@ -36,7 +36,7 @@ if __name__=='__main__':
                     'EV1':"18:30:00-23:59:59",
                     'EV2':"00:00:00-02:59:59",
                     'EA':"03:00:00-05:59:59"}
-    tp_list = {'AM','MD','PM','EV1','EV2','EA'}
+    tp_list = ['AM','MD','PM','EV1','EV2','EA']
                     
     print "loading gtfs"
     gtfs.load()
@@ -63,17 +63,19 @@ if __name__=='__main__':
         print "writing shapes"
         if not as_separate_files:
             shape_writer = shapefile.Writer(shapeType=shapefile.POLYLINE)
-            shape_writer.field('route_id',          'N',    10, 0)
+            shape_writer.field('route_id',          'C',    10, 0)
             shape_writer.field('route_short_name',  'C',    10, 0)
             shape_writer.field('route_long_name',   'C',    50, 0)
             shape_writer.field('direction_id',      'C',    15,  0)
             shape_writer.field('shape_id',          'N',    10, 0)
             # add timeperiod frequency columns
             for tp in tp_list:
-                shape_writer.field(tp, 'N', 10, 0)
+                shape_writer.field('%s_trips' % tp, 'N', 10, 0)
             for tp in tp_list:
-                if tp not in shape_freq.columns.tolist():
-                    shape_freq[tp] = 0
+                shape_writer.field('%s_headway' % tp, 'N', 10, 2)
+##            for tp in tp_list:
+##                if tp not in shape_freq.columns.tolist():
+##                    shape_freq[tp] = 0
                     
         # write shapefile    
         shape_id = None
@@ -82,17 +84,19 @@ if __name__=='__main__':
                 if as_separate_files:
                     # then open up a new shapefile
                     shape_writer = shapefile.Writer(shapeType=shapefile.POLYLINE)
-                    shape_writer.field('route_id',          'N',    10, 0)
+                    shape_writer.field('route_id',          'C',    10, 0)
                     shape_writer.field('route_short_name',  'C',    10, 0)
                     shape_writer.field('route_long_name',   'C',    50, 0)
                     shape_writer.field('direction_id',      'C',    15,  0)
                     shape_writer.field('shape_id',          'N',    10, 0)
                     # add timeperiod frequency columns
                     for tp in tp_list:
-                        shape_writer.field(tp, 'N', 10, 0)
+                        shape_writer.field('%s_trips' % tp, 'N', 10, 0)
                     for tp in tp_list:
-                        if tp not in shape_freq.columns.tolist():
-                            shape_freq[tp] = 0
+                        shape_writer.field('%s_headway' % tp, 'N', 10, 2)
+##                    for tp in tp_list:
+##                        if tp not in shape_freq.columns.tolist():
+##                            shape_freq[tp] = 0
 
                 # set up attributes
                 route_id = shape['route_id']
@@ -101,15 +105,17 @@ if __name__=='__main__':
                 direction_id = shape['direction_id']
                 shape_id = shape['shape_id']
                 tp_freqs = []
+                tp_heads = []
                 for tp in tp_list:
-                    tp_freqs.append(round(shape['%s_freq' % tp],2))
+                    tp_freqs.append(round(shape['%s_trips' % tp],))
+                    tp_heads.append(round(shape['%s_mean_headway' % tp],2))
                 #print "tp_freqs:", tp_freqs
                 points = []
                 
             if shape_id != shape['shape_id']:
                 # it's a new line, so write the previous one
                 shape_writer.line([points])
-                shape_writer.record(route_id, route_short_name, route_long_name, direction_id, shape_id, *tp_freqs)
+                shape_writer.record(route_id, route_short_name, route_long_name, direction_id, shape_id, *tp_freqs+tp_heads)
                 
                 if as_separate_files:
                     # then save the shapefile
@@ -120,17 +126,19 @@ if __name__=='__main__':
                     prj.close()
                     # and open up a new shapefile
                     shape_writer = shapefile.Writer(shapeType=shapefile.POLYLINE)
-                    shape_writer.field('route_id',          'N',    10, 0)
+                    shape_writer.field('route_id',          'C',    10, 0)
                     shape_writer.field('route_short_name',  'C',    10, 0)
                     shape_writer.field('route_long_name',   'C',    50, 0)
                     shape_writer.field('direction_id',      'C',    15,  0)
                     shape_writer.field('shape_id',          'N',    10, 0)
                     # add timeperiod frequency columns
                     for tp in tp_list:
-                        shape_writer.field(tp, 'N', 10, 0)
+                        shape_writer.field('%s_trips' % tp, 'N', 10, 0)
                     for tp in tp_list:
-                        if tp not in shape_freq.columns.tolist():
-                            shape_freq[tp] = 0
+                        shape_writer.field('%s_headway' % tp, 'N', 10, 2)
+##                    for tp in tp_list:
+##                        if tp not in shape_freq.columns.tolist():
+##                            shape_freq[tp] = 0
                         
                 # get attributes for this line
                 route_id = shape['route_id']
@@ -140,7 +148,8 @@ if __name__=='__main__':
                 shape_id = shape['shape_id']
                 tp_freqs = []
                 for tp in tp_list:
-                    tp_freqs.append(round(shape['%s_freq' % tp],2))
+                    tp_freqs.append(round(shape['%s_trips' % tp],))
+                    tp_heads.append(round(shape['%s_mean_headway' % tp],2))
                 points = []
                 
             point = [shape['shape_pt_lon'],shape['shape_pt_lat']]
@@ -148,7 +157,7 @@ if __name__=='__main__':
         # write the last one
         shape_writer.line([points])
         shape_writer.record(shape['route_id'], shape['route_short_name'],
-                            shape['route_long_name'], shape['direction_id'], shape['shape_id'], *tp_freqs)
+                            shape['route_long_name'], shape['direction_id'], shape['shape_id'], *tp_freqs+tp_heads)
         if as_separate_files:
             shape_writer.save('%s_%s_%s_%s_%s.shp' % (tag, shape['route_id'],shape['route_short_name'],shape['direction_id'],shape['shape_id']))
             prj = open('%s_%s_%s_%s_%s.prj' % (tag, shape['route_id'],shape['route_short_name'],shape['direction_id'],shape['shape_id']), "w")
@@ -162,7 +171,7 @@ if __name__=='__main__':
     if write_stops:
         if not as_separate_files:
             shape_writer = shapefile.Writer(shapeType=shapefile.POINT)
-            shape_writer.field('route_id',          'N',    10, 0)
+            shape_writer.field('route_id',          'C',    10, 0)
             shape_writer.field('route_short_name',  'C',    10, 0)
             shape_writer.field('route_long_name',   'C',    50, 0)
             shape_writer.field('direction_id',      'C',    15,  0)
@@ -173,7 +182,7 @@ if __name__=='__main__':
                 if as_separate_files:
                     # then open up a new shapefile
                     shape_writer = shapefile.Writer(shapeType=shapefile.POINT)
-                    shape_writer.field('route_id',          'N',    10, 0)
+                    shape_writer.field('route_id',          'C',    10, 0)
                     shape_writer.field('route_short_name',  'C',    10, 0)
                     shape_writer.field('route_long_name',   'C',    50, 0)
                     shape_writer.field('direction_id',      'C',    15,  0)
@@ -194,7 +203,7 @@ if __name__=='__main__':
                     prj.close()
                     # and open up a new shapefile
                     shape_writer = shapefile.Writer(shapeType=shapefile.POINT)
-                    shape_writer.field('route_id',          'N',    10, 0)
+                    shape_writer.field('route_id',          'C',    10, 0)
                     shape_writer.field('route_short_name',  'C',    10, 0)
                     shape_writer.field('route_long_name',   'C',    50, 0)
                     shape_writer.field('direction_id',      'C',    15,  0)
