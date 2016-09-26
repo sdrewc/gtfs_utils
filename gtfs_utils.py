@@ -283,6 +283,15 @@ class GTFSFeed(object):
         return trips
     
     def apply_time_periods(self, time_periods):
+        '''
+        input: time_periods: dict of timeperiod key to time range (in str format: hh:mm:ss-hh:mm:ss)
+        output: 
+            self._tp_idx_cols:      add 'trip_departure_tp'
+            self.time_periods:      holds time_periods
+            self.has_time_periods:  set to True
+            self.stop_times:        add columns arr_mpm, dep_mpm, arr_tp, dep_tp
+            self.trips:             add columns trip_departure_time, trip_departure_mpm, trip_departure_tp
+        '''
         # update column collections
         self._tp_idx_cols += ['trip_departure_tp']
         self.time_periods = time_periods
