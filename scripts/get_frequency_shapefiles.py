@@ -147,6 +147,7 @@ if __name__=='__main__':
                 direction_id = shape['direction_id']
                 shape_id = shape['shape_id']
                 tp_freqs = []
+                tp_heads = []
                 for tp in tp_list:
                     tp_freqs.append(round(shape['%s_trips' % tp],))
                     tp_heads.append(round(shape['%s_mean_headway' % tp],2))
