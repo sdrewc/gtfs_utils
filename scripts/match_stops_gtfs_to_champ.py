@@ -14,7 +14,8 @@ if __name__=='__main__':
 ##    args = sys.argv[1:]
 ##    gtfs_path = args[0]
 ##    ftfs_path = args[1]
-    gtfs_path = r'Q:\Model Development\SHRP2-fasttrips\Task2\gtfs\SFMTA_20120319'
+    #gtfs_path = r'Q:\Model Development\SHRP2-fasttrips\Task2\gtfs\SFMTA_20120319'
+    gtfs_path = r'Q:\Data\GTFS\ACTransit\GTFSFall12'
     ftfs_path = r'Q:\Model Development\SHRP2-fasttrips\Task2\built_fasttrips_network_2012Base\draft1.5'
     champ_to_gtfs_file = r''
     x_nearest = 4
@@ -48,7 +49,7 @@ if __name__=='__main__':
     ftfs_stop_points = {}
     #gtfs.route_patterns.to_csv('gtfs_route_patterns.csv',index=False)
     #ftfs.route_patterns.to_csv('ftfs_route_patterns.csv',index=False)
-    sys.exit()
+    #sys.exit()
     #print gtfs.used_stops.columns
     
     print "converting gtfs stops to points"
